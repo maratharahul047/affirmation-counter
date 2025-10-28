@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Affirmation Counter</title>
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      text-align: center;
+      width: 340px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .count {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #4CAF50;
+      margin: 15px 0;
+    }
+
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 1rem;
+      color: #333;
+      cursor: pointer;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #43a047;
+    }
+
+    .reset {
+      background: #f44336;
+      margin-top: 10px;
+    }
+
+    .reset:hover {
+      background: #d32f2f;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .history {
+      margin-top: 25px;
+      border-top: 1px solid #ddd;
+      padding-top: 15px;
+      text-align: left;
+    }
+
+    .history h2 {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      background: #f8f8f8;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .no-history {
+      text-align: center;
+      color: #777;
+      font-size: 0.9rem;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🌞 Affirmation Counter</h1>
+    <p>Mark each affirmation you repeat. Progress saves automatically!</p>
+
+    <div class="count" id="count">0</div>
+
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="affirm" onclick="incrementCount()"> ✅ Said
+      </label>
+    </div>
+
+    <button class="reset" onclick="resetCount()">Reset Today</button>
+
+    <div class="footer" id="footer"></div>
+
+    <!-- 📅 HISTORY PANEL -->
+    <div class="history">
+      <h2>📖 History</h2>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const countEl = document.getElementById("count");
+    const footerEl = document.getElementById("footer");
+    const historyList = document.getElementById("historyList");
+    const today = new Date().toISOString().split("T")[0];
+    const key = "affirmations_" + today;
+
+    // Load today's count or start with 0
+    let count = parseInt(localStorage.getItem(key)) || 0;
+    countEl.textContent = count;
+    footerEl.textContent = "📅 " + today;
+
+    // 🟢 Increment when radio selected
+    function incrementCount() {
+      count++;
+      localStorage.setItem(key, count);
+      countEl.textContent = count;
+
+      setTimeout(() => {
+        document.querySelector('input[name="affirm"]').checked = false;
+      }, 400);
+
+      updateHistory();
+    }
+
+    // 🔴 Reset count
+    function resetCount() {
+      if (confirm("Reset today's affirmation count?")) {
+        count = 0;
+        localStorage.setItem(key, count);
+        countEl.textContent = count;
+        updateHistory();
+      }
+    }
+
+    // 📜 Update History Panel
+    function updateHistory() {
+      historyList.innerHTML = "";
+
+      // Loop through all keys from localStorage
+      const keys = Object.keys(localStorage)
+        .filter(k => k.startsWith("affirmations_"))
+        .sort()
+        .reverse(); // recent first
+
+      if (keys.length === 0) {
+        historyList.innerHTML = "<div class='no-history'>No history yet</div>";
+        return;
+      }
+
+      keys.forEach(k => {
+        const date = k.replace("affirmations_", "");
+        const val = localStorage.getItem(k);
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `<span>${date}</span><strong>${val}</strong>`;
+        historyList.appendChild(item);
+      });
+    }
+
+    updateHistory(); // show when page loads
+  </script>
+</body>
+</html>
